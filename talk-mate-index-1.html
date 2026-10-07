@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#6d3df5">
+<title>Talk Mate</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f5f7fb;color:#182033}
+body{display:flex;justify-content:center}.app{width:100%;max-width:520px;min-height:100vh;background:#fff}
+.header{padding:18px;background:linear-gradient(135deg,#6d3df5,#8d5cf6);color:#fff}.header h1{margin:0}.header p{margin:5px 0 0;opacity:.9}
+.content{padding:16px 16px 90px}.hero,.card{background:#fff;border:1px solid #e8eaf0;border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 5px 18px rgba(20,20,40,.06)}
+.hero{background:#f2eeff}.balance{font-size:28px;font-weight:700;margin:6px 0 12px}.muted{color:#70778a;font-size:13px}
+.people{display:grid;gap:12px}.person{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid #eceef3;border-radius:16px}.avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#eee;font-size:25px}
+.person-info{flex:1}.person-info b{display:block;margin-bottom:4px}.online{color:#18a957;font-size:12px}.actions{display:flex;gap:6px}
+.btn{border:0;border-radius:12px;padding:10px 12px;cursor:pointer;font-weight:600}.primary{background:#6d3df5;color:#fff}.secondary{background:#f0edff;color:#5c31df}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.form{display:grid;gap:10px}.form input{padding:12px;border:1px solid #dddfea;border-radius:12px}
+.nav{position:fixed;bottom:0;width:100%;max-width:520px;background:#fff;border-top:1px solid #e8eaf0;display:grid;grid-template-columns:repeat(4,1fr);padding:8px 5px}
+.nav button{border:0;background:none;padding:6px;color:#73798a;font-size:12px}.nav button.active{color:#6d3df5;font-weight:700}.nav span{display:block;font-size:20px}
+.empty{text-align:center;padding:30px 10px;color:#777}.call{position:fixed;inset:0;background:#171525;color:#fff;display:none;z-index:10;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.call.show{display:flex}.call-avatar{width:100px;height:100px;border-radius:50%;display:grid;place-items:center;background:#302b45;font-size:55px}
+.call-actions{display:flex;gap:14px;margin-top:35px}.call-actions button{width:58px;height:58px;border:0;border-radius:50%;font-size:24px}.end{background:#e63950;color:#fff}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="header"><h1>Talk Mate</h1><p>Voice & Video Calling App</p></header>
+<main id="content" class="content"></main>
+<nav class="nav">
+<button data-page="home" onclick="go('home')"><span>🏠</span>Home</button>
+<button data-page="wallet" onclick="go('wallet')"><span>💰</span>Wallet</button>
+<button data-page="history" onclick="go('history')"><span>🕘</span>History</button>
+<button data-page="profile" onclick="go('profile')"><span>👤</span>Profile</button>
+</nav>
+</div>
+
+<div id="callScreen" class="call">
+<div id="callAvatar" class="call-avatar">👤</div>
+<h2 id="callName">Calling...</h2><p id="callType">Connecting...</p>
+<div class="call-actions">
+<button class="secondary" onclick="alert('Microphone toggled')">🎤</button>
+<button class="secondary" onclick="alert('Camera toggled')">📹</button>
+<button class="end" onclick="endCall()">📞</button>
+</div>
+</div>
+
+<script>
+const state={page:'home',balance:500,history:[]};
+const people=[
+{name:'Aisha',age:24,rate:8,emoji:'👩🏻',online:true},
+{name:'Neha',age:26,rate:10,emoji:'👩🏽',online:true},
+{name:'Riya',age:23,rate:7,emoji:'👩🏼',online:true},
+{name:'Arjun',age:27,rate:9,emoji:'👨🏻',online:true}
+];
+function money(n){return '₹'+Number(n).toFixed(0)}
+function render(){
+document.getElementById('content').innerHTML=pageContent();
+document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===state.page));
+}
+function pageContent(){
+if(state.page==='home')return `
+<div class="hero"><div class="muted">Available Balance</div><div class="balance">${money(state.balance)}</div><button class="btn primary" onclick="go('wallet')">Add Money</button></div>
+<div class="row"><h2>Available Mates</h2><span class="muted">${people.length} online</span></div>
+<div class="people">${people.map(personCard).join('')}</div>`;
+if(state.page==='wallet')return `
+<div class="card"><div class="muted">Your Wallet</div><div class="balance">${money(state.balance)}</div></div>
+<div class="card"><h2>Add Money</h2><div class="form"><input id="amount" type="number" min="1" placeholder="Amount in ₹"><button class="btn primary" onclick="deposit()">Add to Wallet</button></div></div>
+<div class="card"><h3>Withdraw</h3><div class="form"><input id="withdrawAmount" type="number" min="1" placeholder="Amount in ₹"><button class="btn secondary" onclick="withdraw()">Withdraw</button></div></div>`;
+if(state.page==='history')return `
+<h2>Call History</h2><div class="card">${state.history.length?state.history.map(x=>`
+<div class="row" style="padding:10px 0;border-bottom:1px solid #eee"><div><b>${x.name}</b><div class="muted">${x.type} • ${x.time}</div></div><b>${money(x.cost)}</b></div>`).join(''):'<div class="empty">अभी कोई call history नहीं है।</div>'}</div>`;
+return `<div class="card"><div class="avatar" style="margin:auto">👤</div><h2 style="text-align:center">Talk Mate Profile</h2><p class="muted" style="text-align:center">Voice और Video calls के लिए तैयार</p></div><div class="card"><div class="row"><span>Wallet Balance</span><b>${money(state.balance)}</b></div></div>`;
+}
+function personCard(p){return `<div class="person"><div class="avatar">${p.emoji}</div><div class="person-info"><b>${p.name}, ${p.age}</b><span class="online">● Online · ₹${p.rate}/min</span></div><div class="actions"><button class="btn secondary" onclick="startCall('${p.name}','Voice','${p.emoji}',${p.rate})">📞</button><button class="btn primary" onclick="startCall('${p.name}','Video','${p.emoji}',${p.rate})">📹</button></div></div>`}
+function go(p){state.page=p;render()}
+function deposit(){const n=Number(document.getElementById('amount').value);if(!n||n<=0)return alert('कृपया सही amount डालें');state.balance+=n;render();alert('Money added successfully')}
+function withdraw(){const n=Number(document.getElementById('withdrawAmount').value);if(!n||n<=0)return alert('कृपया सही amount डालें');if(n>state.balance)return alert('Wallet balance कम है');state.balance-=n;render();alert('Withdrawal requested')}
+let currentCall=null;
+function startCall(name,type,emoji,rate){currentCall={name,type,emoji,rate};document.getElementById('callName').textContent=name;document.getElementById('callType').textContent=type+' call connecting...';document.getElementById('callAvatar').textContent=emoji;document.getElementById('callScreen').classList.add('show');setTimeout(()=>{if(currentCall)document.getElementById('callType').textContent=type+' call in progress'},800)}
+function endCall(){if(!currentCall)return;const cost=currentCall.rate;state.balance=Math.max(0,state.balance-cost);state.history.unshift({name:currentCall.name,type:currentCall.type,cost,time:new Date().toLocaleTimeString()});document.getElementById('callScreen').classList.remove('show');currentCall=null;render()}
+render();
+</script>
+</body>
+</html>

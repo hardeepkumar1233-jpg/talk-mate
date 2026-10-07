@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#6d3df5">
+<title>Talk Mate</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#f5f6fa;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#171923}button,input,select{font:inherit}.app{max-width:520px;margin:auto;min-height:100vh;background:#fff}.top{padding:20px 18px 10px;display:flex;justify-content:space-between;align-items:center}.brand{font-weight:800;font-size:25px}.balance{background:#f0eaff;color:#5b32c7;padding:9px 12px;border-radius:18px;font-weight:700}.content{padding:10px 18px 90px}.tabs{display:flex;gap:8px;overflow:auto;margin:12px 0}.tabs button{border:0;background:#f0f1f5;padding:9px 14px;border-radius:20px}.tabs .active{background:#6d3df5;color:#fff}.card{border:1px solid #e7e7ed;border-radius:18px;padding:15px;margin:12px 0}.profile{display:flex;align-items:center;gap:12px}.avatar{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:#eee;font-size:25px}.muted{color:#707481;font-size:13px}.rate{font-weight:800}.actions{display:flex;gap:8px;margin-top:12px}.btn{border:0;border-radius:12px;padding:11px 14px;font-weight:700}.primary{background:#6d3df5;color:#fff}.secondary{background:#f0f1f5}.danger{background:#ffe8e8;color:#b42318}.field{margin:10px 0}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}.field input,.field select{width:100%;padding:12px;border:1px solid #ddd;border-radius:12px}.amounts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.amounts button{padding:12px;border:1px solid #ddd;background:#fff;border-radius:12px}.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:520px;width:100%;background:#fff;border-top:1px solid #eee;display:flex;justify-content:space-around;padding:10px}.nav button{border:0;background:none;font-size:12px}.center{text-align:center}.big{font-size:38px;font-weight:850}.online{color:#15803d;font-weight:700}.call{background:#171923;color:#fff;min-height:100vh;padding:30px 20px;text-align:center}.call .avatar{margin:60px auto 15px;background:#333}.call .timer{font-size:28px;margin:20px}.call .end{margin-top:40px;background:#e5484d;color:#fff;border:0;border-radius:50px;padding:16px 28px;font-weight:800}</style>
+</head>
+<body>
+<div id="app"></div>
+<script>const state={page:'home',balance:500,selected:null,minutes:0};
+const people=[
+{name:'Aisha',age:24,rate:8,emoji:'👩🏻',online:true},
+{name:'Neha',age:26,rate:10,emoji:'👩🏽',online:true},
+{name:'Riya',age:23,rate:7,emoji:'👩🏼',online:false},
+{name:'Arjun',age:27,rate:9,emoji:'👨🏻',online:true}
+];
+function money(n){return '₹'+Number(n).toFixed(2)}
+function render(){
+const app=document.getElementById('app');
+if(state.page==='call') return app.innerHTML=callView();
+app.innerHTML=`<div class="app"><div class="top"><div class="brand">Talk Mate</div><div class="balance">${money(state.balance)}</div></div>
+<div class="content">${pageContent()}</div><div class="nav">
+<button onclick="go('home')">🏠<br>Home</button><button onclick="go('wallet')">💰<br>Wallet</button><button onclick="go('history')">📜<br>History</button><button onclick="go('profile')">👤<br>Profile</button></div></div>`;
+}
+function pageContent(){
+if(state.page==='home')return `<h2>Talk to someone</h2><p class="muted">18+ only • Choose a profile and pay per minute.</p>${people.map(p=>`<div class="card"><div class="profile"><div class="avatar">${p.emoji}</div><div><b>${p.name}, ${p.age}</b><div class="muted">${p.online?'<span class="online">● Online</span>':'Offline'}</div></div><div style="margin-left:auto" class="rate">${money(p.rate)}/min</div></div><div class="actions"><button class="btn primary" onclick="startCall('${p.name}','voice')">📞 Voice</button><button class="btn secondary" onclick="startCall('${p.name}','video')">🎥 Video</button><button class="btn danger" onclick="alert('Report submitted')">Report</button></div></div>`).join('');
+if(state.page==='wallet')return `<h2>Wallet</h2><div class="card center"><div class="muted">Available balance</div><div class="big">${money(state.balance)}</div></div><div class="card"><h3>Deposit</h3><p class="muted">Demo mode — connect your verified payment gateway for real INR payments.</p><div class="amounts">${[100,500,1000].map(x=>`<button onclick="deposit(${x})">+ ₹${x}</button>`).join('')}</div></div><div class="card"><h3>Withdraw</h3><div class="field"><label>UPI ID</label><input id="upi" placeholder="name@upi"></div><div class="field"><label>Amount</label><input id="wamt" type="number" placeholder="₹"></div><button class="btn primary" onclick="withdraw()">Request withdrawal</button></div>`;
+if(state.page==='history')return `<h2>History</h2><div class="card">📞 Aisha — Voice — 4 min — ₹32</div><div class="card">🎥 Neha — Video — 2 min — ₹20</div>`;
+return `<h2>Profile</h2><div class="card"><div class="profile"><div class="avatar">👤</div><div><b>My Profile</b><div class="muted">18+ verified account required</div></div></div></div><div class="card"><button class="btn secondary" onclick="alert('Block/report controls will be connected to the backend')">Safety & Reporting</button></div>`;
+}
+function callView(){return `<div class="call"><div class="muted">Talk Mate • ${state.selected?.type==='video'?'Video':'Voice'} Call</div><div class="avatar">${people.find(p=>p.name===state.selected.name)?.emoji||'👤'}</div><h2>${state.selected.name}</h2><div class="timer" id="timer">00:00</div><div class="muted">Rate: ${money(state.selected.rate)}/minute</div><button class="end" onclick="endCall()">End call</button></div>`}
+function go(p){state.page=p;render()}
+function deposit(x){state.balance+=x;alert(`Demo deposit added: ${money(x)}`);render()}
+function withdraw(){const a=Number(document.getElementById('wamt').value); if(!a||a>state.balance)return alert('Enter a valid amount within your balance.'); state.balance-=a;alert('Demo withdrawal request created.');render()}
+function startCall(name,type){const p=people.find(x=>x.name===name); if(!p)return; if(state.balance<p.rate){return alert('Insufficient balance. Please deposit first.')} state.selected={...p,type};state.page='call';render();let s=0;state.interval=setInterval(()=>{s++;let el=document.getElementById('timer');if(el)el.textContent=new Date(s*1000).toISOString().substr(14,5);if(s%60===0){state.balance=Math.max(0,state.balance-p.rate);if(state.balance===0)endCall();}},1000)}
+function endCall(){clearInterval(state.interval);state.selected=null;state.page='home';render()}
+render();</script>
+</body>
+</html>
